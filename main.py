@@ -1,7 +1,5 @@
 import streamlit as st
 import math
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 # ================================
@@ -148,19 +146,24 @@ if uploaded_file:
 
     # Afficher les résultats sous forme de tableau
     st.write("### Résultats de la simulation")
-    results_df = pd.DataFrame(simulation_data)
-    st.dataframe(results_df)
+    results_table = ""
+    results_table += "| Tour | Positions | Score | Total Score |\n"
+    results_table += "|------|-----------|-------|-------------|\n"
+    for data in simulation_data:
+        positions_str = ", ".join([f"({r}, {c})" for r, c in data["positions"]])
+        results_table += f"| {data['tour']} | {positions_str} | {data['score']} | {data['total_score']} |\n"
+
+    st.markdown(f"```{results_table}```")
 
     # Visualisation des positions des ballons
     st.write("### Visualisation des positions des ballons")
-    grid = np.zeros((R, C))
     for t, data in enumerate(simulation_data):
         fig, ax = plt.subplots()
-        grid.fill(0)
+        grid = [[0 for _ in range(C)] for _ in range(R)]
         for target in target_cells:
-            grid[target[0], target[1]] = -1  # Indiquer les cibles
+            grid[target[0]][target[1]] = -1  # Indiquer les cibles
         for pos in data["positions"]:
-            grid[pos[0], pos[1]] = 1  # Position des ballons
+            grid[pos[0]][pos[1]] = 1  # Position des ballons
         ax.imshow(grid, cmap="coolwarm", interpolation="none")
         ax.set_title(f"Tour {t+1}")
         st.pyplot(fig)
