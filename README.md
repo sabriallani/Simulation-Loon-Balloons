@@ -5,7 +5,8 @@ This repository contains a Streamlit application that simulates the coordination
 ## Features
 
 - **Interactive Simulation**: Adjust the altitude of balloons in real-time and observe their movements.
-- **Dynamic Visualizations**: Visualize balloon positions and target coverage on a grid.
+- **Text-Based Visualization**: Visualize balloon positions and target coverage directly in the terminal or Streamlit app.
+- **Optimized Movement**: Balloons adjust their altitudes to maximize coverage of target cells.
 - **Simulation Metrics**: View scores and results for each simulation step.
 - **Error Validation**: Ensures the input file is correctly formatted before starting the simulation.
 
@@ -18,14 +19,13 @@ This repository contains a Streamlit application that simulates the coordination
 Ensure you have the following installed on your system:
 
 - Python 3.8 or later
-- Required Python libraries:
+- Required Python library:
   - `streamlit`
-  - `matplotlib`
 
 Install dependencies with:
 
 ```bash
-pip install streamlit matplotlib
+pip install streamlit
 ```
 
 ### Running the Application
@@ -115,10 +115,10 @@ The input file must be a plain text file with the following structure:
    Upload the input file to initialize the simulation.
 
 2. **Interactive Control**:
-   Adjust the altitude of each balloon at every turn.
+   The application calculates the optimal altitude adjustment for each balloon to maximize target coverage.
 
-3. **Visualization**:
-   - Balloon positions and target coverage are displayed on a grid.
+3. **Text-Based Visualization**:
+   - Balloon positions and target coverage are displayed as a grid of characters (`B` for balloons, `T` for targets).
    - Real-time updates for scores and simulation data.
 
 4. **Results**:
@@ -132,9 +132,21 @@ The input file must be a plain text file with the following structure:
   - View scores for each step and the total score dynamically.
 
 - **Grid Visualization**:
-  - Balloons (indicated by positions) and targets are clearly marked.
+  - Balloons (indicated by `B`) and targets (indicated by `T`) are clearly marked on the grid.
 
-![Simulation Example](screencapture-localhost-8501-2025-01-11-20_32_32.png)
+```txt
+Tour 1
+..T.B....
+Score pour ce tour : 1
+
+Tour 2
+..T.B....
+Score pour ce tour : 1
+
+Tour 3
+..T.B....
+Score pour ce tour : 1
+```
 
 ---
 
@@ -143,3 +155,7 @@ The input file must be a plain text file with the following structure:
 If you'd like to contribute, feel free to fork the repository and submit a pull request.
 
 ---
+
+## License
+
+This project is licensed under the MIT License.
