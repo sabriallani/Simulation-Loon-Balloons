@@ -134,6 +134,8 @@ The input file must be a plain text file with the following structure:
 - **Grid Visualization**:
   - Balloons (indicated by positions) and targets are clearly marked.
 
+![Simulation Example](screencapture-localhost-8501-2025-01-11-20_32_32.png)
+
 ---
 
 ## Contributing
@@ -141,7 +143,3 @@ The input file must be a plain text file with the following structure:
 If you'd like to contribute, feel free to fork the repository and submit a pull request.
 
 ---
-
-## License
-
-This project is licensed under the MIT License.
