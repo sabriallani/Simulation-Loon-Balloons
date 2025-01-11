@@ -1,6 +1,5 @@
 import streamlit as st
 import math
-import matplotlib.pyplot as plt
 
 # ================================
 # Étape 1: Interface utilisateur pour le chargement des données
@@ -68,7 +67,16 @@ if uploaded_file:
     # Étape 2: Initialisation de la simulation
     # ================================
     balloons = [{"row": start_row, "col": start_col, "altitude": 0, "lost": False} for _ in range(B)]
-    simulation_data = []
+
+    def display_grid(balloons, target_cells, R, C):
+        """Affichage textuel de la grille."""
+        grid = [["." for _ in range(C)] for _ in range(R)]
+        for r, c in target_cells:
+            grid[r][c] = "T"  # Marquer les cibles
+        for b in balloons:
+            if not b["lost"]:
+                grid[b["row"]][b["col"]] = "B"  # Marquer les ballons
+        return "\n".join("".join(row) for row in grid)
 
     def calculate_coverage(balloons):
         """Calculer les cibles couvertes par les ballons."""
@@ -84,88 +92,39 @@ if uploaded_file:
                     covered.add(target)
         return len(covered)
 
-    def move_balloons(balloons, adjustments):
-        """Déplacer les ballons en fonction des ajustements d'altitude."""
-        for i, adjustment in enumerate(adjustments):
-            if balloons[i]["lost"]:
+    def best_move(balloons, target_cells, wind_grids, R, C, A):
+        """Trouver le meilleur mouvement pour maximiser la couverture."""
+        for b in balloons:
+            if b["lost"]:
                 continue
+            best_score = -1
+            best_adjustment = 0
 
-            # Ajuster l'altitude
-            new_altitude = balloons[i]["altitude"] + adjustment
-            if new_altitude < 1 or new_altitude > A:
-                balloons[i]["lost"] = True
-                continue
+            for adjustment in [-1, 0, 1]:
+                new_altitude = b["altitude"] + adjustment
+                if new_altitude < 1 or new_altitude > A:
+                    continue
 
-            balloons[i]["altitude"] = new_altitude
+                wind = wind_grids[new_altitude - 1][b["row"]][b["col"]]
+                new_row = b["row"] + wind[0]
+                new_col = (b["col"] + wind[1]) % C
 
-            # Calculer la nouvelle position en fonction du vent
-            current_altitude = new_altitude - 1  # Index 0-based
-            delta_r, delta_c = wind_grids[current_altitude][balloons[i]["row"]][balloons[i]["col"]]
-            new_row = balloons[i]["row"] + delta_r
-            new_col = (balloons[i]["col"] + delta_c) % C
+                if new_row < 0 or new_row >= R:
+                    continue
 
-            # Vérifier si le ballon est perdu
-            if new_row < 0 or new_row >= R:
-                balloons[i]["lost"] = True
-            else:
-                balloons[i]["row"] = new_row
-                balloons[i]["col"] = new_col
+                score = sum(
+                    1 for tr, tc in target_cells
+                    if abs(tr - new_row) + min(abs(tc - new_col), C - abs(tc - new_col)) <= V
+                )
+                if score > best_score:
+                    best_score = score
+                    best_adjustment = adjustment
 
-    # ================================
-    # Étape 3: Simulation
-    # ================================
-    st.write("### Simulation")
-    total_score = 0
+            b["altitude"] += best_adjustment
 
     for t in range(T):
         st.write(f"#### Tour {t+1}")
-
-        # Récupérer les ajustements de l'utilisateur
-        adjustments = []
-        for b in range(B):
-            adjustment = st.number_input(f"Ajustement d'altitude pour le ballon {b+1} au tour {t+1}", -1, 1, 0)
-            adjustments.append(adjustment)
-
-        # Déplacer les ballons
-        move_balloons(balloons, adjustments)
-
-        # Calculer la couverture
+        best_move(balloons, target_cells, wind_grids, R, C, A)
+        st.write(display_grid(balloons, target_cells, R, C))
         score = calculate_coverage(balloons)
-        total_score += score
-
-        # Enregistrer les données de simulation
-        simulation_data.append({
-            "tour": t + 1,
-            "positions": [(b["row"], b["col"]) for b in balloons],
-            "score": score,
-            "total_score": total_score
-        })
-
         st.write(f"Score pour ce tour : {score}")
-        st.write(f"Score total : {total_score}")
-
-    # Afficher les résultats sous forme de tableau
-    st.write("### Résultats de la simulation")
-    results_table = ""
-    results_table += "| Tour | Positions | Score | Total Score |\n"
-    results_table += "|------|-----------|-------|-------------|\n"
-    for data in simulation_data:
-        positions_str = ", ".join([f"({r}, {c})" for r, c in data["positions"]])
-        results_table += f"| {data['tour']} | {positions_str} | {data['score']} | {data['total_score']} |\n"
-
-    st.markdown(f"```{results_table}```")
-
-    # Visualisation des positions des ballons
-    st.write("### Visualisation des positions des ballons")
-    for t, data in enumerate(simulation_data):
-        fig, ax = plt.subplots()
-        grid = [[0 for _ in range(C)] for _ in range(R)]
-        for target in target_cells:
-            grid[target[0]][target[1]] = -1  # Indiquer les cibles
-        for pos in data["positions"]:
-            grid[pos[0]][pos[1]] = 1  # Position des ballons
-        ax.imshow(grid, cmap="coolwarm", interpolation="none")
-        ax.set_title(f"Tour {t+1}")
-        st.pyplot(fig)
-
-    st.write(f"### Score final : {total_score}")
