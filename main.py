@@ -78,9 +78,8 @@ if uploaded_file:
                 grid[b["row"]][b["col"]] = "B"  # Marquer les ballons
         return "\n".join("".join(row) for row in grid)
 
-    def calculate_coverage(balloons):
+    def calculate_coverage(balloons, covered_targets):
         """Calculer les cibles couvertes par les ballons."""
-        covered = set()
         for balloon in balloons:
             if balloon["lost"] or balloon["altitude"] == 0:
                 continue
@@ -89,10 +88,10 @@ if uploaded_file:
                 tr, tc = target
                 col_dist = min(abs(tc - c), C - abs(tc - c))  # Grille cyclique pour les colonnes
                 if math.sqrt((tr - r) ** 2 + col_dist ** 2) <= V:
-                    covered.add(target)
-        return len(covered)
+                    covered_targets.add(target)
+        return len(covered_targets)
 
-    def best_move(balloons, target_cells, wind_grids, R, C, A):
+    def best_move(balloons, target_cells, wind_grids, R, C, A, covered_targets):
         """Trouver le meilleur mouvement pour maximiser la couverture."""
         for b in balloons:
             if b["lost"]:
@@ -114,7 +113,7 @@ if uploaded_file:
 
                 score = sum(
                     1 for tr, tc in target_cells
-                    if abs(tr - new_row) + min(abs(tc - new_col), C - abs(tc - new_col)) <= V
+                    if (tr, tc) not in covered_targets and abs(tr - new_row) + min(abs(tc - new_col), C - abs(tc - new_col)) <= V
                 )
                 if score > best_score:
                     best_score = score
@@ -122,9 +121,12 @@ if uploaded_file:
 
             b["altitude"] += best_adjustment
 
+    covered_targets = set()
     for t in range(T):
         st.write(f"#### Tour {t+1}")
-        best_move(balloons, target_cells, wind_grids, R, C, A)
+        best_move(balloons, target_cells, wind_grids, R, C, A, covered_targets)
         st.write(display_grid(balloons, target_cells, R, C))
-        score = calculate_coverage(balloons)
+        score = calculate_coverage(balloons, covered_targets)
         st.write(f"Score pour ce tour : {score}")
+
+    st.write(f"### Score final : {len(covered_targets)} cibles couvertes")
